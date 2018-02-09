@@ -24,6 +24,7 @@ Route.group(() => {
 
     //USERS
     Route.get('users', 'UserController.getAll')
+    //Route.get('user/authenticated', 'UserController.getAuthenticadedUser')
     Route.get('users/:idOrUsername', 'UserController.getOne')
     Route.get('users/:idOrUsername/posts', 'UserController.getRelatedPosts')
     Route.get('users/:idOrUsername/likes', 'UserController.getRelatedLikes')
@@ -37,7 +38,7 @@ Route.group(() => {
     Route.get('posts/:idOrSlug/users', 'PostController.getRelatedUsers')
     Route.get('posts/:idOrSlug/likes', 'PostController.getRelatedLikes')
     Route.get('posts/:idOrSlug/tags', 'PostController.getRelatedTags')
-    Route.post('posts', 'PostController.create')
+    Route.post('posts', 'PostController.store')
     Route.put('posts/:id', 'PostController.update')
     Route.delete('posts/:idOrSlug', 'PostController.delete')
     Route.delete('posts/:idOrSlug/tags/:id', 'PostController.deleteRelatedTags')
@@ -46,7 +47,7 @@ Route.group(() => {
     Route.get('categories', 'CategoriesController.getAll')
     Route.get('categories/:idOrName', 'CategoriesController.getOne')
     Route.get('categories/:idOrName/posts', 'CategoriesController.getRelatedPosts')
-    Route.post('categories', 'CategoriesController.create')
+    Route.post('categories', 'CategoriesController.store')
     Route.put('categories/:idOrName', 'CategoriesController.update')
     Route.delete('categories/:idOrName', 'CategoriesController.delete')
     
@@ -57,9 +58,9 @@ Route.group(() => {
     Route.delete('tags/:idOrName', 'TagsController.delete')
 
     //LIKES
-    Route.post('likes', 'TagsController.create')
+    Route.post('likes', 'TagsController.store')
     Route.delete('likes/:id', 'TagsController.delete')
 
 }).prefix('api/v1')
 
-Route.any('*', ({ view }) => view.render('404'))
+//Route.any('/*', ({ view }) => view.render('404'))

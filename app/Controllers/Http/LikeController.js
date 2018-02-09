@@ -2,14 +2,14 @@
 
 class LikeController {
     
-    create ({ request , response }) {
+    store ({ request , response }) {
 
     }
-    
+
     delete ({ request , response }) {
 
     }
-    
+
 }
 
 module.exports = LikeController

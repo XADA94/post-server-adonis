@@ -3,6 +3,7 @@
 class AuthController {
 
     authenticate ({ request , response }) {
+
         
     }
 }
