@@ -85,7 +85,7 @@ class UserController {
 
             let userModel = new User
 
-            res.data = userModel.transformArray(users)
+            res.data = await userModel.transformArray(users)
 
             response.status(status).send(res)
         } catch (e) {
@@ -104,18 +104,16 @@ class UserController {
 
         try {
 
-            const user = await User.query().select(fields).from(this.type).whereRaw('id = ? OR username = ?', [params.idOrUsername,params.idOrUsername]).fetch()
+            const userQuery = await User.query().select(fields).from(this.type).whereRaw('id = ? OR username = ?', [params.idOrUsername,params.idOrUsername]).fetch()
 
-            let userModel = new User
+            let user = new User(userQuery.toJSON()[0])
 
-            
-
-            if(!user.toJSON()[0]){
+            if(!userQuery.toJSON()[0]){
                 status = 404
                 res.data = null
             }else{
                 status = 200
-                res.data = userModel.transform(user.toJSON()[0])
+                res.data = await user.transform()
             }
 
             response.status(status).send(res)

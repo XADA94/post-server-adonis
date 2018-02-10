@@ -1,8 +1,8 @@
 'use strict'
 
-const Model = use('Model')
+const Transformer = use('App/Libs/Transformer')
 
-class Category extends Model {
+class Category extends Transformer {
 
     posts () {
         return this.hasMany('App/Models/Post')
@@ -12,33 +12,6 @@ class Category extends Model {
         return 'categories'
     }
 
-    transform (Instance) {
-
-        if(Instance){
-            Object.assign(this, Instance)
-        }
-    
-        return {
-            type: this.table(),
-            id: this.id,
-            attributes: {
-                name: this.name,
-                slug: this.slug,
-                description: this.description,
-                created_at: this.created_at,
-                update_at: this.updated_at
-            }
-        }
-    }
-    
-    transformArray (array) {
-        let data = []
-        for(var key in array){
-            Object.assign(this, array[key])
-            data.push(this.transform())
-        }
-        return data
-    }
 }
 
 module.exports = Category

@@ -1,8 +1,18 @@
 'use strict'
 
-const Model = use('Model')
+const Transformer = use('App/Libs/Transformer')
 
-class User extends Model {
+class User extends Transformer {
+
+  constructor (Instance) {
+    super()
+
+    if(Instance){
+      Object.assign(this, Instance)
+    }
+
+    this.table = 'users'
+  }
 
   static boot () {
     super.boot()
@@ -14,10 +24,6 @@ class User extends Model {
      * check the hashPassword method
      */
     this.addHook('beforeCreate', 'User.hashPassword')
-  }
-
-  table () {
-    return 'users'
   }
 
   /**
@@ -34,34 +40,6 @@ class User extends Model {
     return this.hasMany('App/Models/Token')
   }
 
-  transform (Instance) {
-
-    if(Instance){
-      Object.assign(this, Instance)
-    }
-
-    return {
-      type: this.table(),
-      id: this.id,
-      attributes: {
-        username: this.username,
-        names: this.names,
-        email: this.email,
-        avatar: this.avatar,
-        created_at: this.created_at,
-        update_at: this.updated_at
-      }
-    }
-  }
-
-  transformArray (array) {
-    let data = []
-    for(var key in array){
-      Object.assign(this, array[key])
-      data.push(this.transform())
-    }
-    return data
-  }
 }
 
 module.exports = User
