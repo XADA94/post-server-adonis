@@ -1,10 +1,12 @@
 'use strict'
 
-const { validate } = use('Validator')
+const Validate = use('App/Validators/Validate')
 
-class ValidateUser {
+class ValidateUser extends Validate {
 
   constructor () {
+    super() 
+    
     this.rulesStore = {
       username: 'required|unique:users',
       email: 'required|email|unique:users',
@@ -19,38 +21,7 @@ class ValidateUser {
 
     this.messages = {}
   }
-  
-  async store (data) {
 
-    const validation = await validate(data, this.rulesStore)
-    
-    if (validation.fails()) {
-      return {
-        status: false,
-        errors: validation.messages()
-      }
-    }
-
-    return {
-      status: true
-    }
-  }
-
-  async update (data, id) {
-
-    const validation = await validate(data, this.rulesUpdate)
-
-    if (validation.fails()) {
-      return {
-        status: false,
-        errors: validation.messages()
-      }
-    }
-
-    return {
-      status: true
-    }
-  }
 }
 
 module.exports = ValidateUser

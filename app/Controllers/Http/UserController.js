@@ -1,50 +1,28 @@
 'use strict'
 
 const Database = use('Database')
-const User = use('App/Models/User')
+const Model = use('App/Models/User')
 const Post = use('App/Models/Post')
+const Like = use('App/Models/Like')
 const ValidateUser = use('App/Validators/ValidateUser')
 
-class UserController {
+const Controller = use('App/Libs/Controller')
+
+class UserController extends Controller {
 
     constructor() {
-        this.validate = new ValidateUser
-        this.type = "users"
+        super()
+
+        this.validate  = new ValidateUser
+        this.model     = new Model
+        this.postModel = new Post
+        this.likeModel = new Like
+        this.type      = "users"
     }
 
     async getAll ({ request , response }) {
-    
-        let res = {}, status, query_str = request.get(), fields = '*', page = 1, size = 10, sort = ['id','asc']
-
-        if(query_str.fields){
-            fields = query_str.fields.split(',')
-            fields.unshift('id')
-        }
-
-        if(query_str.page && query_str.size){
-            
-            page = query_str.page
-            
-            if(query_str.size > 10){
-                size = query_str.size 
-            }
-
-        }
-
-        if(query_str.sort){
-
-            if(!query_str.sort.search("-")){
-
-                sort[0] = query_str.sort.replace('-','')
-                sort[1] = 'desc'
-
-            }else{
-
-                sort[0] = query_str.sort
-
-            }
-
-        }
+        
+        this.setQuerys(request.get())
 
         try {
             const count = await Database.from(this.type).count('* as total')    
@@ -52,153 +30,127 @@ class UserController {
             
             if(total){
 
-                status = 200
+                this.status = 200
 
-                res.meta = {}
+                this.res.setMeta("total_count", total)
 
-                res.meta.total_count = total
-
-                if(total > size){
-                    res.meta.total_pages = Math.ceil(total/size)
+                if(total > this.size){
+                   this.res.setMeta("total_pages", Math.ceil(total/this.size))
                 }else{
-                    res.meta.total_pages = 1
+                   this.res.setMeta("total_pages", 1)
                 }
 
-                if(res.meta.total_pages <= page && page > 1){
-                    res.meta.prev_page = page - 1
+                if(this.res.meta.total_pages <= this.page && this.page > 1){
+                   this.res.setMeta("prev_page", this.page - 1)
                 }
 
-                res.meta.actual_page = page
+               this.res.setMeta("actual_page", this.page)
 
-                if(res.meta.total_pages > page){
-                    res.meta.next_page = page + 1
+                if(this.res.meta.total_pages > this.page){
+                   this.res.setMeta("next_page", this.page + 1)
                 }
+
+               this.res.setMeta("per_page", this.size)
 
             }else{
-                status = 404
+                this.status = 404
             }
 
-            const users = await Database.select(fields)
+            const rows = await Database.select(this.fields)
                                         .from(this.type)
-                                        .orderBy(sort[0], sort[1])
-                                        .forPage(page, size)
+                                        .orderBy(this.sort[0], this.sort[1])
+                                        .forPage(this.page, this.size)
 
-            let userModel = new User
+           this.res.setData(await this.model.transformArray(rows))
 
-            res.data = await userModel.transformArray(users)
-
-            response.status(status).send(res)
         } catch (e) {
-            response.status(500).send(e)
+            this.status = 500
+            this.res.setErrors({
+                msg: "Hubo un error"
+            }) 
         }
+
+        response.status(this.status).send(this.res)
     }
 
     async getOne ({ params , request , response }) {
 
-        let res = {}, status, query_str = request.get(), fields = '*'
-
-        if(query_str.fields){
-            fields = query_str.fields.split(',')
-            fields.unshift('id')
-        }
+        this.setQuerys(request.get())
 
         try {
 
-            const userQuery = await User.query().select(fields).from(this.type).whereRaw('id = ? OR username = ?', [params.idOrUsername,params.idOrUsername]).fetch()
+            const query = await Model.query()
+                                    .select(this.fields)
+                                    .from(this.type)
+                                    .whereRaw('id = ? OR username = ?', [params.idOrUsername,params.idOrUsername]).fetch()
 
-            let user = new User(userQuery.toJSON()[0])
+            let row = new Model(query.toJSON()[0])
 
-            if(!userQuery.toJSON()[0]){
-                status = 404
-                res.data = null
+            if(!query.toJSON()[0]){
+                this.status = 404
+                this.res.setData(null) 
             }else{
-                status = 200
-                res.data = await user.transform()
+                this.status = 200
+                this.res.setData(await row.transform()) 
             }
-
-            response.status(status).send(res)
+            
         } catch (e) {
-            response.status(500).send(e)
+            this.status = 500
+            this.res.setErrors({
+                msg: "Hubo un error"
+            }) 
         }
+
+        response.status(this.status).send(this.res)
     }
 
     async getRelatedPosts ({ request , params , response }) {
 
-        let res = {}, status, query_str = request.get(), fields = '*', page = 1, size = 10, sort = ['id','asc']
-
-        if(query_str.fields){
-            fields = query_str.fields.split(',')
-            fields.unshift('id')
-        }
-
-        if(query_str.page && query_str.size){
-            
-            page = query_str.page
-            
-            if(query_str.size > 10){
-                size = query_str.size 
-            }
-
-        }
-
-        if(query_str.sort){
-
-            if(!query_str.sort.search("-")){
-
-                sort[0] = query_str.sort.replace('-','')
-                sort[1] = 'desc'
-
-            }else{
-
-                sort[0] = query_str.sort
-
-            }
-
-        }
+        this.setQuerys(request.get())
 
         try {
-            const count = await Database.from('posts').where('user_id', params.idOrUsername).count('* as total')    
+            const count = await Database.from('posts').where('user_id', params.id).count('* as total')    
             const total = count[0].total       
             
             if(total){
 
-                status = 200
+                this.status = 200
 
-                res.meta = {}
+               this.res.setMeta("total_count", total)
 
-                res.meta.total_count = total
-
-                if(total > size){
-                    res.meta.total_pages = Math.ceil(total/size)
+                if(total > this.size){
+                   this.res.setMeta("total_pages", Math.ceil(total/this.size))
                 }else{
-                    res.meta.total_pages = 1
+                   this.res.setMeta("total_pages", 1)
                 }
 
-                if(res.meta.total_pages <= page && page > 1){
-                    res.meta.prev_page = page - 1
+                if(this.res.setMeta.total_pages <= this.page && this.page > 1){
+                   this.res.setMeta("prev_page", this.page - 1)
                 }
 
-                res.meta.actual_page = page
+               this.res.setMeta("actual_page", this.page)
 
-                if(res.meta.total_pages > page){
-                    res.meta.next_page = page + 1
+                if(this.res.setMeta.total_pages > this.page){
+                   this.res.setMeta("next_page", this.page + 1)
                 }
+
+               this.res.setMeta("per_page", this.size)
 
             }else{
-                status = 404
+                this.status = 404
             }
 
-            const posts = await Database.select(fields)
+            const posts = await Database.select(this.fields)
                                         .from('posts')
-                                        .where('user_id', params.idOrUsername)
-                                        .orderBy(sort[0], sort[1])
-                                        .forPage(page, size)
+                                        .where('user_id', params.id)
+                                        .orderBy(this.sort[0], this.sort[1])
+                                        .forPage(this.page, this.size)
 
             let postModel = new Post
 
-            res.data = await postModel.transformArray(posts)
+           this.res.setData(await postModel.transformArray(posts))
 
-            response.status(status).send(res)
+            response.status(this.status).send(this.res)
         } catch (e) {
             response.status(500).send(e)
         }
@@ -210,27 +162,33 @@ class UserController {
 
     async store ({ request , response }) {
 
-        let res = {}, userData = request.post()
+         userData = request.post()
 
         const result = await this.validate.store(userData)
 
         if(!result.status){
 
-            response.status(400).send(result.errors)
+            this.status = 400
+            this.res.setErrors(result.errors)
 
         }else{
 
             try {
                 const user = await User.create(userData)
 
-                res.data = user.transform()
+                this.status = 200
+                this.res.setData(await user.transform())
 
-                response.status(200).send(res)
             } catch (e) {
-                response.status(500).send(e)
+                this.status = 500
+                this.res.setErrors({
+                    msg: "Ocurrio un error al guardar el registro"
+                })
             }
 
         }
+
+        response.status(200).send(this.res)
     }
 
     update ({ request , response }) {
@@ -239,7 +197,6 @@ class UserController {
 
     delete ({ params , response }) {
 
-        let res = {}
     }
 
 }

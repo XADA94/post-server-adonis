@@ -4,12 +4,17 @@ const Transformer = use('App/Libs/Transformer')
 
 class Category extends Transformer {
 
-    posts () {
-        return this.hasMany('App/Models/Post')
+    constructor (Instance, relations) {
+        super()
+        if(Instance){
+            Object.assign(this, Instance)
+        }
+
+        this.table = 'categories'
     }
 
-    table () {
-        return 'categories'
+    posts () {
+        return this.hasMany('App/Models/Post')
     }
 
 }

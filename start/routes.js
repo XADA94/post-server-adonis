@@ -23,43 +23,41 @@ Route.group(() => {
     Route.post('authenticate', 'AuthController.authenticate')
 
     //USERS
-    Route.get('users', 'UserController.getAll')
-    //Route.get('user/authenticated', 'UserController.getAuthenticadedUser')
-    Route.get('users/:idOrUsername', 'UserController.getOne')
-    Route.get('users/:idOrUsername/posts', 'UserController.getRelatedPosts')
-    Route.get('users/:idOrUsername/likes', 'UserController.getRelatedLikes')
+    Route.get('users', 'UserController.getAll') //ok
+    Route.get('users/:idOrUsername', 'UserController.getOne') //ok
+    Route.get('users/:id/posts', 'UserController.getRelatedPosts') //ok
+    Route.get('users/:idOrUsername/likes', 'UserController.getRelatedLikes').middleware('auth')
     Route.post('users', 'UserController.store')
-    Route.put('users/:idOrUsername', 'UserController.update')
-    Route.put('users/:idOrUsername', 'UserController.delete')
+    Route.put('users/:idOrUsername', 'UserController.update').middleware('auth')
+    Route.put('users/:idOrUsername', 'UserController.delete').middleware('auth')
 
     //POSTS
-    Route.get('posts', 'PostController.getAll')
-    Route.get('posts/:idOrSlug', 'PostController.getOne')
-    Route.get('posts/:idOrSlug/users', 'PostController.getRelatedUsers')
+    Route.get('posts', 'PostController.getAll') //ok
+    Route.get('posts/:idOrSlug', 'PostController.getOne') //ok
     Route.get('posts/:idOrSlug/likes', 'PostController.getRelatedLikes')
     Route.get('posts/:idOrSlug/tags', 'PostController.getRelatedTags')
-    Route.post('posts', 'PostController.store')
-    Route.put('posts/:id', 'PostController.update')
-    Route.delete('posts/:idOrSlug', 'PostController.delete')
+    Route.post('posts', 'PostController.store').middleware('auth') //ok
+    Route.put('posts/:id', 'PostController.update').middleware('auth')
+    Route.delete('posts/:idOrSlug', 'PostController.delete').middleware('auth')
     Route.delete('posts/:idOrSlug/tags/:id', 'PostController.deleteRelatedTags')
     
     //CATEGORIES
-    Route.get('categories', 'CategoriesController.getAll')
-    Route.get('categories/:idOrName', 'CategoriesController.getOne')
-    Route.get('categories/:idOrName/posts', 'CategoriesController.getRelatedPosts')
-    Route.post('categories', 'CategoriesController.store')
-    Route.put('categories/:idOrName', 'CategoriesController.update')
-    Route.delete('categories/:idOrName', 'CategoriesController.delete')
+    Route.get('categories', 'CategoriesController.getAll') //ok
+    Route.get('categories/:idOrSlug', 'CategoriesController.getOne') //ok
+    Route.get('categories/:idOrSlug/posts', 'CategoriesController.getRelatedPosts') //ok
+    Route.post('categories', 'CategoriesController.store') //ok validarAdmin
+    Route.put('categories/:idOrSlug', 'CategoriesController.update') // validarAdmin
+    Route.delete('categories/:idOrSlug', 'CategoriesController.delete') //validarAdmin
     
     //TAGS
     Route.get('tags', 'TagsController.getAll')
-    Route.get('tags/:idOrName', 'TagsController.getOne')
-    Route.get('tags/:idOrName/posts', 'TagsController.getRelatedPosts')
-    Route.delete('tags/:idOrName', 'TagsController.delete')
+    Route.get('tags/:id', 'TagsController.getOne')
+    Route.get('tags/:id/posts', 'TagsController.getRelatedPosts')
+    Route.delete('tags/:id', 'TagsController.delete') //validarAdmin
 
     //LIKES
-    Route.post('likes', 'TagsController.store')
-    Route.delete('likes/:id', 'TagsController.delete')
+    Route.post('likes', 'TagsController.store').middleware('auth')
+    Route.delete('likes/:id', 'TagsController.delete').middleware('auth')
 
 }).prefix('api/v1')
 

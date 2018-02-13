@@ -6,9 +6,8 @@ class User extends Transformer {
 
   constructor (Instance) {
     super()
-
     if(Instance){
-      Object.assign(this, Instance)
+        Object.assign(this, Instance)
     }
 
     this.table = 'users'

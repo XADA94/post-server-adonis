@@ -4,19 +4,11 @@ const Model = use('Model')
 
 class Transformer extends Model {
 
-    init (Instance, table, relations) {
-        
-        if(Instance){
-            Object.assign(this, Instance)
-        }
-
-        this.table = table
-
-        this.relations  = relations
+    constructor () {
+        super()
     }
 
     async transform () {
-    
         let structure =  {
             id: this.id,
             type: this.table,
@@ -26,11 +18,12 @@ class Transformer extends Model {
         let attributesModel = Object.keys(this.$attributes)
 
         for(var key in attributesModel){
-            if(attributesModel[key] !== 'id' && attributesModel[key] !== 'table' && attributesModel[key] !== 'relations'){
+            if(attributesModel[key] !== 'id' && attributesModel[key] !== 'table' && attributesModel[key] !== 'relations' && attributesModel[key] !== 'password' && !attributesModel[key].includes("_id")){
                 structure.attributes[attributesModel[key]] = this[attributesModel[key]]
             }
         
             if(attributesModel[key].includes("_id")){
+                delete this[attributesModel[key]]
                 structure.attributes[attributesModel[key].replace('_id', '')]
             }
         }
@@ -48,7 +41,10 @@ class Transformer extends Model {
                    
                     let i = await model.find(foreignKey)
 
+                    let new_model = new model
+
                     structure.attributes[prefix] = i ? await i.transform() : foreignKey
+                    structure.attributes[prefix].type = new_model.table
                 } catch (e) { }
             }
 

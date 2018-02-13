@@ -6,23 +6,21 @@ const Category = use('App/Models/Category')
 
 class Post extends Transformer {
 
-    constructor (Instance) {
+    constructor (Instance, relations) {
         super()
-        
-        this.init(Instance, 'posts', {
+        if(Instance){
+            Object.assign(this, Instance)
+        }
+
+        this.table = 'posts'    
+        this.relations  = {
             user: User,
             category: Category
-        })
-        
+        }
     }
 
     static boot () {
         super.boot()
-        
-    }
-
-    table () {
-        return 'posts'
     }
 
     user () {
